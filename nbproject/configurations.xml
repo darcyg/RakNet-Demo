@@ -211,7 +211,7 @@
             <pElem>include/raknet</pElem>
             <pElem>/usr/include/c++/4.8.2</pElem>
           </incDir>
-          <commandLine>-std=c++11 -Wall</commandLine>
+          <commandLine>-std=c++11 -O0 -g3 -Wall</commandLine>
         </ccTool>
         <linkerTool>
           <linkerAddLib>
