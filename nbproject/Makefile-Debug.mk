@@ -56,7 +56,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-LLib -Wl,-rpath,Lib -lRakNetDLL -lspeex -lspeexdsp -lportaudio
+LDLIBSOPTIONS=-LLib -Wl,-rpath,Lib -lRakNetDLL -lspeex -lspeexdsp -lportaudio -lopencv_core -lopencv_highgui -lopencv_video
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}

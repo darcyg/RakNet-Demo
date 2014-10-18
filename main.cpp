@@ -10,6 +10,8 @@
 #include <iostream>
 #include <string>
 #include <boost/format.hpp>
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
 
 #include "include/raknet/MessageIdentifiers.h"
 #include "include/raknet/RakPeerInterface.h"
@@ -22,18 +24,20 @@ static void show_usage(std::string name) {
 	std::cerr << "RakNet Demo\n\n"
 			<< "Usage: "
 			<< "\tcommand [options]\n\n"
-			<< boost::format("\t%-20s%s\n") % "-server" % "Run server"
-			<< boost::format("\t%-20s%s\n") % "-client [ip]" % "Run client"
-			<< boost::format("\t%-20s%s\n") % "-voice [ip]" % "Run voice"
+			<< boost::format("\t%-20s%s\n") % "-server -s" % "Run server"
+			<< boost::format("\t%-20s%s\n") % "-client -c [ip]" % "Run client"
+			<< boost::format("\t%-20s%s\n") % "-voice -a [ip]" % "Run voice"
+			<< boost::format("\t%-20s%s\n") % "-video -v" % "Run video"
 			<< std::endl;
 }
 
 char *l_opt_arg;
-const char* short_options = "sc:v:";
+const char* short_options = "sc:a:v:";
 struct option long_options[] = {
 	{ "server", 0, NULL, 's'},
 	{ "client", 1, NULL, 'c'},
-	{ "voice", 1, NULL, 'v'},
+	{ "voice", 1, NULL, 'a'},
+	{ "video", 1, NULL, 'v'},
 	{ 0, 0, 0, 0},
 };
 
@@ -61,13 +65,29 @@ int main(int argc, char** argv) {
 				client.run();
 				break;
 			}
-			case 'v':
+			case 'a':
 			{
 				l_opt_arg = optarg;
 				std::cout << "Voice run" << l_opt_arg << std::endl;
 				Voice voice;
 				voice.run();
 				break;
+			}
+			default:
+			{				
+				cvNamedWindow("Camera_Output", 1);
+				CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+				char key;
+				while (1) {
+					IplImage* frame = cvQueryFrame(capture);
+					cvShowImage("Camera_Output", frame);
+					key = cvWaitKey(10);
+					if (char(key) == 27) {
+						break;
+					}
+				}
+				cvReleaseCapture(&capture);
+				cvDestroyWindow("Camera_Output");
 			}
 		}
 	}

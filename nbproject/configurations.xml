@@ -225,6 +225,9 @@
             <linkerLibLibItem>speex</linkerLibLibItem>
             <linkerLibLibItem>speexdsp</linkerLibLibItem>
             <linkerLibLibItem>portaudio</linkerLibLibItem>
+            <linkerLibLibItem>opencv_core</linkerLibLibItem>
+            <linkerLibLibItem>opencv_highgui</linkerLibLibItem>
+            <linkerLibLibItem>opencv_video</linkerLibLibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
