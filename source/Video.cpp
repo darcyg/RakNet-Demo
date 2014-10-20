@@ -65,6 +65,11 @@ void Video::run() {
 				{
 					connected = true;
 					break;
+				}				
+				case ID_NEW_INCOMING_CONNECTION:
+				{
+					connected = true;
+					break;
 				}
 				case ID_USER_PACKET_ENUM:
 				{
@@ -82,7 +87,7 @@ void Video::run() {
 			rakPeer->DeallocatePacket(packet);
 		}
 
-		if (connected) {
+		if (connected && frame) {
 			std::cout << "Send data" << std::endl;
 			RakNet::BitStream sendStream;
 			sendStream.Write((RakNet::MessageID)ID_USER_PACKET_ENUM);
