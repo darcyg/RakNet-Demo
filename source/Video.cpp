@@ -28,6 +28,7 @@ void Video::run() {
 	}
 
 	rakPeer->SetMaximumIncomingConnections(maxPlayersPerServer);
+	rakPeer->AllowConnectionResponseIPMigration(false);
 
 	char ip[256];
 	std::cout << "Enter IP of remote system: " << std::endl;
@@ -137,7 +138,7 @@ void Video::run() {
 			std::cout << "Send imageSize:" << frame->imageSize << std::endl;
 
 			//rakPeer->Send(&sendStream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, address, false);
-			rakPeer->Send(&sendStream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
+			rakPeer->Send(&sendStream, IMMEDIATE_PRIORITY, UNRELIABLE_SEQUENCED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
 		}
 
 		key = cvWaitKey(10);
@@ -145,7 +146,7 @@ void Video::run() {
 			break;
 		}
 	}
-
+	rakPeer->Shutdown(300);
 	RakNet::RakPeerInterface::DestroyInstance(rakPeer);
 
 	cvReleaseCapture(&capture);
