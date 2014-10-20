@@ -41,6 +41,7 @@ void Video::run() {
 	cvNamedWindow("RemoteVideo", 1);
 	cvNamedWindow("MyVideo", 1);
 	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+	cvSetCaptureProperty(capture, CV_CAP_PROP_FPS, 10);
 
 	RakNet::Packet *packet;
 	unsigned char typeId;
@@ -57,10 +58,6 @@ void Video::run() {
 	while (1) {
 		IplImage* frame = cvQueryFrame(capture);
 		cvShowImage("MyVideo", frame);
-		key = cvWaitKey(10);
-		if (char(key) == 27) {
-			break;
-		}
 
 		packet = rakPeer->Receive();
 		if (packet) {
@@ -97,22 +94,18 @@ void Video::run() {
 					bitStream.Read(channels);
 					bitStream.Read(widthStep);
 					bitStream.Read(imageSize);
-					
-					imageData = (char*)malloc(imageSize);
+
+					imageData = (char*) malloc(imageSize);
 					bitStream.Read(imageData, imageSize);
 
 					IplImage* image = cvCreateImageHeader(cvSize(width, height), depth, channels);
-					cvSetData(image, imageData, widthStep);
+					if (image) {
+						cvSetData(image, imageData, widthStep);
+						cvShowImage("RemoteVideo", image);
+						cvReleaseImageHeader(&image);
+					}
 
-
-					cvShowImage("RemoteVideo", image);
-					
-					cvReleaseImageHeader(&image);
-					
 					free(imageData);
-
-					std::cout << "Receive image width:" << width << ",height:" << height << ",depth:" << depth 
-					<< "channels:" << channels << ",widthStep:" << widthStep << ",imageSize:" << imageSize << std::endl;
 					break;
 				}
 				default:
@@ -134,6 +127,11 @@ void Video::run() {
 			sendStream.Write(frame->imageData, frame->imageSize);
 
 			rakPeer->Send(&sendStream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
+		}
+
+		key = cvWaitKey(10);
+		if (char(key) == 27) {
+			break;
 		}
 	}
 
