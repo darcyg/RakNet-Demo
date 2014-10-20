@@ -39,6 +39,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/source/Client.o \
 	${OBJECTDIR}/source/RakVoice.o \
 	${OBJECTDIR}/source/Server.o \
+	${OBJECTDIR}/source/Video.o \
 	${OBJECTDIR}/source/Voice.o
 
 
@@ -85,6 +86,11 @@ ${OBJECTDIR}/source/Server.o: source/Server.cpp
 	${MKDIR} -p ${OBJECTDIR}/source
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -Iinclude/raknet -I/usr/include/c++/4.8.2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/source/Server.o source/Server.cpp
+
+${OBJECTDIR}/source/Video.o: source/Video.cpp 
+	${MKDIR} -p ${OBJECTDIR}/source
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -Iinclude/raknet -I/usr/include/c++/4.8.2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/source/Video.o source/Video.cpp
 
 ${OBJECTDIR}/source/Voice.o: source/Voice.cpp 
 	${MKDIR} -p ${OBJECTDIR}/source

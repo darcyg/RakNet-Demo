@@ -19,6 +19,7 @@
 #include "Server.h"
 #include "Client.h"
 #include "Voice.h"
+#include "Video.h"
 
 static void show_usage(std::string name) {
 	std::cerr << "RakNet Demo\n\n"
@@ -73,6 +74,14 @@ int main(int argc, char** argv) {
 				voice.run();
 				break;
 			}
+			case 'v':
+			{
+				l_opt_arg = optarg;
+				std::cout << "Video run" << l_opt_arg << std::endl;
+				Video video;
+				video.run();
+				break;
+			}
 			default:
 			{				
 				cvNamedWindow("Camera_Output", 1);
@@ -88,6 +97,7 @@ int main(int argc, char** argv) {
 				}
 				cvReleaseCapture(&capture);
 				cvDestroyWindow("Camera_Output");
+				break;
 			}
 		}
 	}
