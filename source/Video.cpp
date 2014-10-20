@@ -111,7 +111,8 @@ void Video::run() {
 					
 					free(imageData);
 
-					std::cout << "Receive data" << std::endl;
+					std::cout << "Receive image width:" << width << ",height:" << height << ",depth:" << depth 
+					<< "channels:" << channels << ",widthStep:" << widthStep << ",imageSize:" << imageSize << std::endl;
 					break;
 				}
 				default:
@@ -130,7 +131,7 @@ void Video::run() {
 			sendStream.Write(frame->nChannels);
 			sendStream.Write(frame->widthStep);
 			sendStream.Write(frame->imageSize);
-			sendStream.Write(frame->imageData);
+			sendStream.Write(frame->imageData, frame->imageSize);
 
 			rakPeer->Send(&sendStream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
 		}
