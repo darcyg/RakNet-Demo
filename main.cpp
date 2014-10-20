@@ -27,8 +27,8 @@ static void show_usage(std::string name) {
 			<< "\tcommand [options]\n\n"
 			<< boost::format("\t%-20s%s\n") % "-server -s" % "Run server"
 			<< boost::format("\t%-20s%s\n") % "-client -c [ip]" % "Run client"
-			<< boost::format("\t%-20s%s\n") % "-audio -a=[ip]" % "Run audio"
-			<< boost::format("\t%-20s%s\n") % "-video -v=[ip]" % "Run video"
+			<< boost::format("\t%-20s%s\n") % "-audio -a[ip]" % "Run audio"
+			<< boost::format("\t%-20s%s\n") % "-video -v[ip]" % "Run video"
 			<< std::endl;
 }
 

@@ -14,8 +14,8 @@ Video::~Video() {
 }
 
 void Video::run(const char* ip) {
-	unsigned int maxConnectionsAllowed = 4;
-	unsigned int maxPlayersPerServer = 4;
+	unsigned int maxConnectionsAllowed = 1;
+	unsigned int maxPlayersPerServer = 1;
 	unsigned short serverPort = 7000;
 
 	RakNet::RakPeerInterface *rakPeer = RakNet::RakPeerInterface::GetInstance();
@@ -28,12 +28,6 @@ void Video::run(const char* ip) {
 	}
 
 	rakPeer->SetMaximumIncomingConnections(maxPlayersPerServer);
-	rakPeer->AllowConnectionResponseIPMigration(false);
-
-	if (ip) {
-		std::cout << "Connect: " << ip << std::endl;
-		rakPeer->Connect(ip, serverPort, 0, 0);
-	}
 
 	cvNamedWindow("RemoteVideo", 1);
 	cvNamedWindow("MyVideo", 1);
@@ -55,6 +49,11 @@ void Video::run(const char* ip) {
 	int widthStep;
 	int imageSize;
 	char* imageData;
+
+	if (ip) {
+		std::cout << "Connect: " << ip << std::endl;
+		rakPeer->Connect(ip, serverPort, 0, 0);
+	}
 	
 	while (1) {
 		frame = cvQueryFrame(capture);
@@ -69,12 +68,14 @@ void Video::run(const char* ip) {
 			switch (typeId) {
 				case ID_CONNECTION_REQUEST_ACCEPTED:
 				{
+					std::cout << "ID_CONNECTION_REQUEST_ACCEPTED" << ip << std::endl;
 					address = packet->systemAddress;
 					connected = true;
 					break;
 				}
 				case ID_NEW_INCOMING_CONNECTION:
 				{
+					std::cout << "ID_NEW_INCOMING_CONNECTION" << ip << std::endl;
 					address = packet->systemAddress;
 					connected = true;
 					break;
@@ -133,8 +134,8 @@ void Video::run(const char* ip) {
 			
 			std::cout << "Send imageSize:" << frame->imageSize << std::endl;
 
-			//rakPeer->Send(&sendStream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, address, false);
-			rakPeer->Send(&sendStream, IMMEDIATE_PRIORITY, UNRELIABLE_SEQUENCED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
+			rakPeer->Send(&sendStream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, address, false);
+			//rakPeer->Send(&sendStream, IMMEDIATE_PRIORITY, UNRELIABLE_SEQUENCED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
 		}
 
 		key = cvWaitKey(10);
