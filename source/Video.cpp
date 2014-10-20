@@ -46,6 +46,14 @@ void Video::run() {
 	unsigned char typeId;
 	bool connected = false;
 	char key;
+
+	int width;
+	int height;
+	int depth;
+	int channels;
+	int widthStep;
+	int imageSize;
+	char* imageData;
 	while (1) {
 		IplImage* frame = cvQueryFrame(capture);
 		cvShowImage("MyVideo", frame);
@@ -65,18 +73,43 @@ void Video::run() {
 				{
 					connected = true;
 					break;
-				}				
+				}
 				case ID_NEW_INCOMING_CONNECTION:
 				{
 					connected = true;
 					break;
 				}
+				case ID_DISCONNECTION_NOTIFICATION:
+				{
+					connected = false;
+					break;
+				}
+				case ID_CONNECTION_LOST:
+				{
+					connected = false;
+					break;
+				}
 				case ID_USER_PACKET_ENUM:
 				{
-					IplImage recvFrame;
-					bitStream.Read(recvFrame);
+					bitStream.Read(width);
+					bitStream.Read(height);
+					bitStream.Read(depth);
+					bitStream.Read(channels);
+					bitStream.Read(widthStep);
+					bitStream.Read(imageSize);
 					
-					cvShowImage("RemoteVideo", &recvFrame);
+					imageData = (char*)malloc(imageSize);
+					bitStream.Read(imageData, imageSize);
+
+					IplImage* image = cvCreateImageHeader(cvSize(width, height), depth, channels);
+					cvSetData(image, imageData, widthStep);
+
+
+					cvShowImage("RemoteVideo", image);
+					
+					cvReleaseImageHeader(&image);
+					
+					free(imageData);
 
 					std::cout << "Receive data" << std::endl;
 					break;
@@ -91,7 +124,13 @@ void Video::run() {
 			std::cout << "Send data" << std::endl;
 			RakNet::BitStream sendStream;
 			sendStream.Write((RakNet::MessageID)ID_USER_PACKET_ENUM);
-			sendStream.Write(frame);
+			sendStream.Write(frame->width);
+			sendStream.Write(frame->height);
+			sendStream.Write(frame->depth);
+			sendStream.Write(frame->nChannels);
+			sendStream.Write(frame->widthStep);
+			sendStream.Write(frame->imageSize);
+			sendStream.Write(frame->imageData);
 
 			rakPeer->Send(&sendStream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
 		}
