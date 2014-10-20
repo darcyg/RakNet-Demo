@@ -47,6 +47,8 @@ void Video::run() {
 	unsigned char typeId;
 	bool connected = false;
 	char key;
+	
+	IplImage* frame;
 
 	int width;
 	int height;
@@ -56,7 +58,7 @@ void Video::run() {
 	int imageSize;
 	char* imageData;
 	while (1) {
-		IplImage* frame = cvQueryFrame(capture);
+		frame = cvQueryFrame(capture);
 		cvShowImage("MyVideo", frame);
 
 		packet = rakPeer->Receive();
