@@ -16,7 +16,7 @@ Client::Client(const Client& orig) {
 Client::~Client() {
 }
 
-void Client::run() {
+void Client::run(const char* ip) {
 	unsigned short serverPort = 6666;
 
 	RakNet::RakPeerInterface *client = RakNet::RakPeerInterface::GetInstance();
@@ -24,7 +24,7 @@ void Client::run() {
 
 	client->Startup(1, &socketDescriptor, 1);
 
-	bool ret = (client->Connect("127.0.0.1", serverPort, NULL, 0, 0) == RakNet::CONNECTION_ATTEMPT_STARTED);
+	bool ret = (client->Connect(ip, serverPort, NULL, 0, 0) == RakNet::CONNECTION_ATTEMPT_STARTED);
 
 	RakAssert(ret);
 

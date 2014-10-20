@@ -13,7 +13,6 @@
 
 #include "RakVoice.h"
 
-#include "raknet/Kbhit.h"
 #include "raknet/MessageIdentifiers.h"
 #include "raknet/RakPeerInterface.h"
 #include "raknet/RakNetTypes.h"
@@ -25,7 +24,7 @@ public:
 	Voice();
 	virtual ~Voice();
 	
-	void run();
+	void run(const char* ip);
 	int portAudioCallback(void *inputBuffer, void *outputBuffer);
 private:
 	bool mute;

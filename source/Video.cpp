@@ -13,7 +13,7 @@ Video::Video() {
 Video::~Video() {
 }
 
-void Video::run() {
+void Video::run(const char* ip) {
 	unsigned int maxConnectionsAllowed = 4;
 	unsigned int maxPlayersPerServer = 4;
 	unsigned short serverPort = 7000;
@@ -30,11 +30,7 @@ void Video::run() {
 	rakPeer->SetMaximumIncomingConnections(maxPlayersPerServer);
 	rakPeer->AllowConnectionResponseIPMigration(false);
 
-	char ip[256];
-	std::cout << "Enter IP of remote system: " << std::endl;
-	std::cin.getline(ip, sizeof (ip));
-	std::cout << "ip: " << ip << std::endl;
-	if (ip[0] != 0) {
+	if (ip) {
 		std::cout << "Connect: " << ip << std::endl;
 		rakPeer->Connect(ip, serverPort, 0, 0);
 	}

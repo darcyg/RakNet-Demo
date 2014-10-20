@@ -24,7 +24,7 @@ static int c_callback(const void *inputBuffer, void *outputBuffer, unsigned long
 	return voice->portAudioCallback((void *) inputBuffer, outputBuffer);
 }
 
-void Voice::run() {
+void Voice::run(const char* ip) {
 	if (err != paNoError) {
 		std::cerr << "Pa_Initialize fail:" << Pa_GetErrorText(err) << std::endl;
 		return;
@@ -62,27 +62,25 @@ void Voice::run() {
 	std::cout << "input device: " << std::endl;
 	for (i = 0; i < numdev; i++) {
 		info = Pa_GetDeviceInfo((PaDeviceIndex) i);
-		if (info->maxInputChannels > 0) 
-		{
+		if (info->maxInputChannels > 0) {
 			std::cout << i << ": " << info->name << ", sample rate: " << info->defaultSampleRate << std::endl;
 		}
 	}
-	
+
 	inparam.device = Pa_GetDefaultInputDevice();
 	inparam.channelCount = 1;
 	inparam.sampleFormat = paInt16;
-	
+
 	memset(&outparam, 0, sizeof (PaStreamParameters));
 
 	std::cout << "output device: " << std::endl;
 	for (i = 0; i < numdev; i++) {
 		info = Pa_GetDeviceInfo((PaDeviceIndex) i);
-		if (info->maxOutputChannels > 0) 
-		{
+		if (info->maxOutputChannels > 0) {
 			std::cout << i << ": " << info->name << ", sample rate: " << info->defaultSampleRate << std::endl;
 		}
 	}
-	
+
 	outparam.device = Pa_GetDefaultOutputDevice();
 	outparam.channelCount = 1;
 	outparam.sampleFormat = paInt16;
@@ -100,27 +98,15 @@ void Voice::run() {
 		return;
 	}
 
+	if (ip) {
+		std::cout << "Connect: " << ip << std::endl;
+		rakPeer->Connect(ip, serverPort, 0, 0);
+	}
+
 	RakNet::Packet *packet;
 	unsigned char typeId;
-	char ch;
-	while (1) {
-		if (kbhit()) {
-			ch=getch();
-			if (ch=='c')
-			{
-				char ip[256];
-				std::cin.sync();
-				std::cin.ignore();
-				std::cout << "\nEnter IP of remote system: " << std::endl;
-				std::cin.getline(ip, sizeof (ip));
-				std::cout << "ip: " << ip << std::endl;
-				if (ip[0] != 0) {
-					std::cout << "Connect: " << ip << std::endl;
-					rakPeer->Connect(ip, serverPort, 0, 0);
-				}
-			}
-		}
 
+	while (1) {
 		packet = rakPeer->Receive();
 		while (packet) {
 			std::cout << "Receive data from" << packet->systemAddress.ToString() << std::endl;
@@ -133,7 +119,7 @@ void Voice::run() {
 					std::cout << "connect success:" << packet->guid.ToString() << std::endl;
 					rakVoice.RequestVoiceChannel(packet->guid);
 					break;
-				}				
+				}
 				case ID_CONNECTION_ATTEMPT_FAILED:
 					break;
 				case ID_RAKVOICE_OPEN_CHANNEL_REQUEST:

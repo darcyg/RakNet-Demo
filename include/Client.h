@@ -22,7 +22,7 @@ public:
 	Client(const Client& orig);
 	virtual ~Client();
 	
-	void run();
+	void run(const char* ip);
 private:
 
 };

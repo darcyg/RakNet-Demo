@@ -27,18 +27,18 @@ static void show_usage(std::string name) {
 			<< "\tcommand [options]\n\n"
 			<< boost::format("\t%-20s%s\n") % "-server -s" % "Run server"
 			<< boost::format("\t%-20s%s\n") % "-client -c [ip]" % "Run client"
-			<< boost::format("\t%-20s%s\n") % "-voice -a [ip]" % "Run voice"
-			<< boost::format("\t%-20s%s\n") % "-video -v" % "Run video"
+			<< boost::format("\t%-20s%s\n") % "-audio -a=[ip]" % "Run audio"
+			<< boost::format("\t%-20s%s\n") % "-video -v=[ip]" % "Run video"
 			<< std::endl;
 }
 
-char *l_opt_arg;
-const char* short_options = "sc:a:v:";
+char *ip = NULL;
+const char* short_options = "sc:a::v::";
 struct option long_options[] = {
-	{ "server", 0, NULL, 's'},
-	{ "client", 1, NULL, 'c'},
-	{ "voice", 1, NULL, 'a'},
-	{ "video", 1, NULL, 'v'},
+	{ "server", no_argument, NULL, 's'},
+	{ "client", required_argument, NULL, 'c'},	// 參數必選
+	{ "audio", optional_argument, NULL, 'a'},	// 參數可選
+	{ "video", optional_argument, NULL, 'v'},	// 參數可選
 	{ 0, 0, 0, 0},
 };
 
@@ -60,43 +60,31 @@ int main(int argc, char** argv) {
 			}
 			case 'c':
 			{
-				l_opt_arg = optarg;
-				std::cout << "Connect server run" << l_opt_arg << std::endl;
+				ip = optarg;
+				std::cout << "client run:" << ip << std::endl;
 				Client client;
-				client.run();
+				client.run(ip);
 				break;
 			}
 			case 'a':
 			{
-				l_opt_arg = optarg;
-				std::cout << "Voice run" << l_opt_arg << std::endl;
+				ip = optarg;
+				std::cout << "audio run:" << ip << std::endl;
 				Voice voice;
-				voice.run();
+				voice.run(ip);
 				break;
 			}
 			case 'v':
 			{
-				l_opt_arg = optarg;
-				std::cout << "Video run" << l_opt_arg << std::endl;
+				ip = optarg;
+				std::cout << "Video run:" << ip << std::endl;
 				Video video;
-				video.run();
+				video.run(ip);
 				break;
 			}
 			default:
-			{				
-				cvNamedWindow("Camera_Output", 1);
-				CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
-				char key;
-				while (1) {
-					IplImage* frame = cvQueryFrame(capture);
-					cvShowImage("Camera_Output", frame);
-					key = cvWaitKey(10);
-					if (char(key) == 27) {
-						break;
-					}
-				}
-				cvReleaseCapture(&capture);
-				cvDestroyWindow("Camera_Output");
+			{
+				std::cerr << boost::format("%s: option `-%c` is invalid: ignored") % argv[0] % static_cast<char>(optopt) << std::endl;
 				break;
 			}
 		}

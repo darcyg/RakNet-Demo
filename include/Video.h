@@ -24,7 +24,7 @@ public:
 	Video();
 	virtual ~Video();
 	
-	void run();
+	void run(const char* ip);
 private:
 };
 
