@@ -28,6 +28,7 @@ public:
 	void run(const char* ip);
 private:
 	CvCapture* capture;
+	int alpha_slider;
 };
 
 #endif	/* VIDEO_H */

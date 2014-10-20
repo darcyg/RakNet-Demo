@@ -58,7 +58,8 @@ void Video::run(const char* ip) {
 		rakPeer->Connect(ip, serverPort, 0, 0);
 	}
 
-	cvNamedWindow("MyVideo", 1);
+	cvNamedWindow("MyVideo", CV_WINDOW_AUTOSIZE | CV_GUI_NORMAL);
+	cvCreateTrackbar("AlphaTrackbar", "MyVideo", &alpha_slider, 100);
 	capture = cvCaptureFromCAM(CV_CAP_ANY);
 	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 320);
 	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 240);
@@ -146,7 +147,7 @@ void Video::run(const char* ip) {
 			rakPeer->Send(&sendStream, LOW_PRIORITY, UNRELIABLE_SEQUENCED, 0, address, false);
 			//rakPeer->Send(&sendStream, IMMEDIATE_PRIORITY, UNRELIABLE_SEQUENCED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
 		}
-		key = cvWaitKey(50);
+		key = cvWaitKey(10);
 		if (char(key) == 27) {
 			break;
 		}
