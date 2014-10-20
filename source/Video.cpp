@@ -6,11 +6,19 @@
  */
 
 #include "Video.h"
+#include <time.h>
 
 Video::Video() {
 }
 
 Video::~Video() {
+}
+
+int Video::getFrameCount() {
+	int i = 0;
+	while (cvGrabFrame(capture))
+		i++;
+	return i;
 }
 
 void Video::run(const char* ip) {
@@ -29,16 +37,11 @@ void Video::run(const char* ip) {
 
 	rakPeer->SetMaximumIncomingConnections(maxPlayersPerServer);
 
-	cvNamedWindow("RemoteVideo", 1);
-	cvNamedWindow("MyVideo", 1);
-	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
-	cvSetCaptureProperty(capture, CV_CAP_PROP_FPS, 2);
-
 	RakNet::Packet *packet;
 	unsigned char typeId;
 	bool connected = false;
 	char key;
-	
+
 	IplImage* frame;
 	RakNet::SystemAddress address;
 
@@ -54,14 +57,25 @@ void Video::run(const char* ip) {
 		std::cout << "Connect: " << ip << std::endl;
 		rakPeer->Connect(ip, serverPort, 0, 0);
 	}
-	
+
+	cvNamedWindow("MyVideo", 1);
+	capture = cvCaptureFromCAM(CV_CAP_ANY);
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 320);
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 240);
+
+	cvNamedWindow("RemoteVideo", 1);
+
 	while (1) {
+		const time_t t = time(NULL);
+		struct tm* current_time = localtime(&t);
+		std::cout << "current time is " << current_time->tm_sec << std::endl;
+
 		frame = cvQueryFrame(capture);
 		cvShowImage("MyVideo", frame);
 
+
 		packet = rakPeer->Receive();
-		while (packet) {
-			std::cout << "Receive data from" << packet->systemAddress.ToString() << std::endl;
+		if (packet) {
 			RakNet::BitStream bitStream(packet->data, packet->length, false);
 
 			bitStream.Read(typeId);
@@ -99,7 +113,7 @@ void Video::run(const char* ip) {
 					bitStream.Read(widthStep);
 					bitStream.Read(imageSize);
 
-					imageData = (char*) malloc(imageSize);
+					imageData = new char[imageSize];
 					bitStream.Read(imageData, imageSize);
 
 					IplImage* image = cvCreateImageHeader(cvSize(width, height), depth, channels);
@@ -109,16 +123,13 @@ void Video::run(const char* ip) {
 						cvReleaseImageHeader(&image);
 					}
 
-					free(imageData);
-					
-					std::cout << "Receive imageSize:" << imageSize << std::endl;
+					delete imageData;
 					break;
 				}
 				default:
 					break;
 			}
 			rakPeer->DeallocatePacket(packet);
-			packet = rakPeer->Receive();
 		}
 
 		if (connected && frame) {
@@ -131,18 +142,16 @@ void Video::run(const char* ip) {
 			sendStream.Write(frame->widthStep);
 			sendStream.Write(frame->imageSize);
 			sendStream.Write(frame->imageData, frame->imageSize);
-			
-			std::cout << "Send imageSize:" << frame->imageSize << std::endl;
 
-			rakPeer->Send(&sendStream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, address, false);
+			rakPeer->Send(&sendStream, LOW_PRIORITY, UNRELIABLE_SEQUENCED, 0, address, false);
 			//rakPeer->Send(&sendStream, IMMEDIATE_PRIORITY, UNRELIABLE_SEQUENCED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
 		}
-
-		key = cvWaitKey(10);
+		key = cvWaitKey(50);
 		if (char(key) == 27) {
 			break;
 		}
 	}
+
 	rakPeer->Shutdown(300);
 	RakNet::RakPeerInterface::DestroyInstance(rakPeer);
 

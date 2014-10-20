@@ -24,8 +24,10 @@ public:
 	Video();
 	virtual ~Video();
 	
+	int getFrameCount();
 	void run(const char* ip);
 private:
+	CvCapture* capture;
 };
 
 #endif	/* VIDEO_H */
