@@ -63,6 +63,7 @@ void Video::run(const char* ip) {
 	capture = cvCaptureFromCAM(CV_CAP_ANY);
 	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 320);
 	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 240);
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FOURCC, CV_FOURCC('B', 'G', 'R', '3'));
 
 	cvNamedWindow("RemoteVideo", 1);
 
