@@ -6,19 +6,13 @@
  */
 
 #include "Video.h"
+#include "CheckSum.h"
 #include <time.h>
 
 Video::Video() {
 }
 
 Video::~Video() {
-}
-
-int Video::getFrameCount() {
-	int i = 0;
-	while (cvGrabFrame(capture))
-		i++;
-	return i;
 }
 
 void Video::run(const char* ip) {
@@ -42,39 +36,35 @@ void Video::run(const char* ip) {
 	bool connected = false;
 	char key;
 
-	IplImage* frame;
 	RakNet::SystemAddress address;
-
-	int width;
-	int height;
-	int depth;
-	int channels;
-	int widthStep;
-	int imageSize;
-	char* imageData;
 
 	if (ip) {
 		std::cout << "Connect: " << ip << std::endl;
 		rakPeer->Connect(ip, serverPort, 0, 0);
 	}
 
-	cvNamedWindow("MyVideo", CV_WINDOW_AUTOSIZE | CV_GUI_NORMAL);
-	cvCreateTrackbar("AlphaTrackbar", "MyVideo", &alpha_slider, 100);
-	capture = cvCaptureFromCAM(CV_CAP_ANY);
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 320);
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 240);
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FOURCC, CV_FOURCC('B', 'G', 'R', '3'));
+	cv::namedWindow("MyVideo", CV_WINDOW_AUTOSIZE | CV_GUI_NORMAL);
+	cv::createTrackbar("AlphaTrackbar", "MyVideo", &alpha_slider, 100);
 
-	cvNamedWindow("RemoteVideo", 1);
+	capture.open(0);
+	if (!capture.isOpened()) {
+		std::cout << "Capture open fail" << std::endl;
+		return;
+	}
+	capture.set(CV_CAP_PROP_FRAME_WIDTH, 320);
+	capture.set(CV_CAP_PROP_FRAME_HEIGHT, 240);
+	capture.set(CV_CAP_PROP_FOURCC, CV_FOURCC('X', '2', '6', '4'));
+
+	cv::namedWindow("RemoteVideo", 1);
 
 	while (1) {
 		const time_t t = time(NULL);
 		struct tm* current_time = localtime(&t);
 		std::cout << "current time is " << current_time->tm_sec << std::endl;
 
-		frame = cvQueryFrame(capture);
-		cvShowImage("MyVideo", frame);
-
+		cv::Mat frame;
+		capture.read(frame);
+		cv::imshow("MyVideo", frame);
 
 		packet = rakPeer->Receive();
 		if (packet) {
@@ -107,25 +97,23 @@ void Video::run(const char* ip) {
 					break;
 				}
 				case ID_USER_PACKET_ENUM:
-				{
-					bitStream.Read(width);
-					bitStream.Read(height);
-					bitStream.Read(depth);
+				{					
+					int cols, rows, type, channels, size;
+					
+					bitStream.Read(cols);
+					bitStream.Read(rows);
+					bitStream.Read(type);
 					bitStream.Read(channels);
-					bitStream.Read(widthStep);
-					bitStream.Read(imageSize);
-
-					imageData = new char[imageSize];
-					bitStream.Read(imageData, imageSize);
-
-					IplImage* image = cvCreateImageHeader(cvSize(width, height), depth, channels);
-					if (image) {
-						cvSetData(image, imageData, widthStep);
-						cvShowImage("RemoteVideo", image);
-						cvReleaseImageHeader(&image);
-					}
-
-					delete imageData;
+					bitStream.Read(size);
+					
+					char* data = new char[size];
+					bitStream.Read(data, size);
+					
+					cv::Mat mat(cols, rows, type, (uchar*)data);
+							
+					cv::imshow("RemoteVideo", mat.reshape(channels, rows));
+					
+					delete data;
 					break;
 				}
 				default:
@@ -134,16 +122,17 @@ void Video::run(const char* ip) {
 			rakPeer->DeallocatePacket(packet);
 		}
 
-		if (connected && frame) {
+		if (connected) {
+			int size = frame.total()*frame.elemSize();
+
 			RakNet::BitStream sendStream;
 			sendStream.Write((RakNet::MessageID)ID_USER_PACKET_ENUM);
-			sendStream.Write(frame->width);
-			sendStream.Write(frame->height);
-			sendStream.Write(frame->depth);
-			sendStream.Write(frame->nChannels);
-			sendStream.Write(frame->widthStep);
-			sendStream.Write(frame->imageSize);
-			sendStream.Write(frame->imageData, frame->imageSize);
+			sendStream.Write(frame.cols);
+			sendStream.Write(frame.rows);
+			sendStream.Write((int)frame.type());
+			sendStream.Write(frame.channels());
+			sendStream.Write(size);
+			sendStream.Write((const char *)frame.data, size);
 
 			rakPeer->Send(&sendStream, LOW_PRIORITY, UNRELIABLE_SEQUENCED, 0, address, false);
 			//rakPeer->Send(&sendStream, IMMEDIATE_PRIORITY, UNRELIABLE_SEQUENCED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
@@ -157,7 +146,5 @@ void Video::run(const char* ip) {
 	rakPeer->Shutdown(300);
 	RakNet::RakPeerInterface::DestroyInstance(rakPeer);
 
-	cvReleaseCapture(&capture);
-	cvDestroyWindow("MyVideo");
-	cvDestroyWindow("RemoteVideo");
+	cv::destroyAllWindows();
 }

@@ -10,8 +10,8 @@
 
 #include <iostream>
 
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include "raknet/MessageIdentifiers.h"
 #include "raknet/RakPeerInterface.h"
@@ -23,11 +23,10 @@ class Video {
 public:
 	Video();
 	virtual ~Video();
-	
-	int getFrameCount();
+
 	void run(const char* ip);
 private:
-	CvCapture* capture;
+	cv::VideoCapture capture;
 	int alpha_slider;
 };
 
